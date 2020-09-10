@@ -4,21 +4,19 @@ def load_data():
     df = pd.read_csv('data/listings_detailed.csv') # retrieve raw data
 
     # Drop unnecessary columns
-    redundant_cols = ['id', 'name', 'description', 'listing_url', 'scrape_id', 'last_scraped',
-        'neighborhood_overview', 'picture_url', 'host_id', 'host_url', 'host_name', 'host_location',
-        'host_about', 'host_response_time', 'host_thumbnail_url', 'host_picture_url',
-        'host_total_listings_count', 'neighbourhood', 'neighbourhood_group_cleansed',
-        'minimum_minimum_nights', 'maximum_minimum_nights', 'minimum_maximum_nights',
-        'maximum_maximum_nights', 'minimum_nights_avg_ntm', 'maximum_nights_avg_ntm',
-        'has_availability', 'number_of_reviews_l30d', 'license', 'bathrooms_text']
+    redundant_cols = ['id', 'name', 'description', 'listing_url', 'scrape_id', 
+        'last_scraped', 'neighborhood_overview', 'picture_url', 'host_id', 'host_url', 
+        'host_name', 'host_location','host_about', 'host_response_time', 'host_thumbnail_url', 
+        'host_picture_url', 'host_total_listings_count', 'neighbourhood', 'neighbourhood_group_cleansed', 
+        'minimum_minimum_nights', 'maximum_minimum_nights', 'minimum_maximum_nights', 
+        'maximum_maximum_nights', 'minimum_nights_avg_ntm', 'maximum_nights_avg_ntm', 
+        'has_availability', 'number_of_reviews_l30d', 'license', 'bathrooms_text', 
+        'host_neighbourhood', 'first_review', 'last_review']
     df.drop(columns=redundant_cols, inplace=True)
 
     # Convert date columns to datetime
     df.host_since = pd.to_datetime(df.host_since, format='%Y-%m-%d')
     df.calendar_last_scraped = pd.to_datetime(df.calendar_last_scraped, format='%Y-%m-%d')
-    df.first_review = pd.to_datetime(df.first_review, format='%Y-%m-%d')
-    df.last_review = pd.to_datetime(df.last_review, format='%Y-%m-%d')
-    df.dropna(subset=['host_since']) # One value
 
     # Convert 't' to 1 and 'f' to 0
     df.host_is_superhost = df.host_is_superhost.apply(lambda x: 1 if x=='t' else 0)
@@ -40,11 +38,13 @@ def load_data():
 
     # Add binary column for missing response rate and set missing values to 0
     df.response_rate_missing = df.host_response_rate.notnull().astype(int)
-    df.host_response_rate.fillna(0, inplace=True)
+    df.host_response_rate.fillna('0%', inplace=True)
+    df.host_response_rate = df.host_response_rate.str[:-1].astype(float)/100
 
     # Add binary column for missing acceptance rate and set missing values to 0
     df.acceptance_rate_missing = df.host_acceptance_rate.notnull().astype(int)
-    df.host_acceptance_rate.fillna(0, inplace=True)
+    df.host_acceptance_rate.fillna('0%', inplace=True)
+    df.host_acceptance_rate = df.host_acceptance_rate.str[:-1].astype(float)/100
 
     # Set missing values for reviews to mean
     df.review_scores_rating.fillna(df.review_scores_rating.mean(), inplace=True)
@@ -62,5 +62,8 @@ def load_data():
     df.bathrooms.fillna(df.bathrooms.mean(), inplace=True)
     df.bedrooms.fillna(df.bedrooms.mean(), inplace=True)
     df.beds.fillna(df.beds.mean(), inplace=True)
+
+    # Drop remaining NA-values
+    df.dropna(inplace=True)
 
     return df
