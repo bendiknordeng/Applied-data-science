@@ -58,10 +58,10 @@ def load_data():
     # Set missing values for reviews per month to 0 (never gotten reviews)
     df.reviews_per_month.fillna(0, inplace=True)
 
-    # Fill missing roomspecifications with mean
-    df.bathrooms.fillna(df.bathrooms.mean(), inplace=True)
-    df.bedrooms.fillna(df.bedrooms.mean(), inplace=True)
-    df.beds.fillna(df.beds.mean(), inplace=True)
+    # Fill missing roomspecifications with mode and set type to integer
+    df.bathrooms = df.bathrooms.fillna(df.bathrooms.mode()[0]).astype(int)
+    df.bedrooms = df.bedrooms.fillna(df.bedrooms.mode()[0]).astype(int)
+    df.beds = df.beds.fillna(df.beds.mode()[0]).astype(int)
 
     # Drop remaining NA-values
     df.dropna(inplace=True)
