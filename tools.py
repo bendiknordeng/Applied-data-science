@@ -2,16 +2,17 @@ import pandas as pd
 
 def load_data():
     df = pd.read_csv('data/listings_detailed.csv') # retrieve raw data
+    print("Columns: ",len(df.columns))
 
     # Drop unnecessary columns
-    redundant_cols = ['id', 'name', 'description', 'listing_url', 'scrape_id', 
+    redundant_cols = ['id', 'name', 'listing_url', 'scrape_id', 
         'last_scraped', 'neighborhood_overview', 'picture_url', 'host_id', 'host_url', 
         'host_name', 'host_location','host_about', 'host_response_time', 'host_thumbnail_url', 
-        'host_picture_url', 'host_total_listings_count', 'neighbourhood', 'neighbourhood_group_cleansed', 
-        'minimum_minimum_nights', 'maximum_minimum_nights', 'minimum_maximum_nights', 
-        'maximum_maximum_nights', 'minimum_nights_avg_ntm', 'maximum_nights_avg_ntm', 
-        'has_availability', 'number_of_reviews_l30d', 'license', 'bathrooms_text', 
-        'host_neighbourhood', 'first_review', 'last_review']
+        'host_picture_url', 'host_total_listings_count', 'neighbourhood', 'calendar_updated', 
+        'neighbourhood_group_cleansed', 'minimum_minimum_nights', 'maximum_minimum_nights', 
+        'minimum_maximum_nights', 'maximum_maximum_nights', 'minimum_nights_avg_ntm', 
+        'maximum_nights_avg_ntm', 'has_availability', 'number_of_reviews_l30d', 'license', 
+        'bathrooms_text', 'host_neighbourhood', 'first_review', 'last_review']
     df.drop(columns=redundant_cols, inplace=True)
 
     # Convert date columns to datetime
