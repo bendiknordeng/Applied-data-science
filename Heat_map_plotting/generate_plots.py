@@ -28,8 +28,8 @@ else:
 # Values to be plotted
 HEAT_MAP_DATA_SHEET_NAMES = ['Sheet1']                   # ['Input_inntekt', 'Input_folketall', 'Input_befolkningstetthet_20-40']
 HEAT_MAP_DATA_COLUMN_NAMES = ['mean_price']                   # ['Inntekt 2017', 'Folketall 2020', 'Befolkningstetthet_20-40']
-HEAT_MAP_TITLES = ['Mean price AirBnB']                          # ['Income Oslo 2017', 'Population Oslo 2020', 'Population density Oslo']
-HEAT_MAP_OUTPUT_FILE_NAMES = ['mean_price_AirBnB.html']         # ['Income Oslo 2017', 'Population.html', 'Population_density_20-40.html']
+HEAT_MAP_TITLES = ['Mean price per neighbourhood']                          # ['Income Oslo 2017', 'Population Oslo 2020', 'Population density Oslo']
+HEAT_MAP_OUTPUT_FILE_NAMES = ['all_listings_2.html']         # ['Income Oslo 2017', 'Population.html', 'Population_density_20-40.html']
 
 # Map specifications
 CENTER_OF_MAP = [59.91, 10.73]
@@ -37,6 +37,7 @@ PLOTTING_COLOR = ['YlOrRd']                                     # YlGnBu, BuPu, 
 PLOTTING_FILL_OPACITY = 0.3
 ZOOM = 12
 TILES = 'cartodbpositron'
+LEGEND_FILE = '../plots/legend.png'
 
 
 def main():
@@ -53,6 +54,7 @@ def main():
     # Ensure correct epsg
     delby.crs = "EPSG:25832"
 
+
     # Plot heat map data
     for i in range(len(HEAT_MAP_DATA_SHEET_NAMES)):
         heatMapPlot = plot(delby, ['geoid', HEAT_MAP_DATA_COLUMN_NAMES[i]], HEAT_MAP_TITLES[i], PLOTTING_COLOR[i],
@@ -60,9 +62,10 @@ def main():
         heatMapPlot.save('../Plots/' + HEAT_MAP_OUTPUT_FILE_NAMES[i])
 
     # Plot listings
+    """
     listings_map = plot_listings()
-    listings_map.save('../Plots/cluster_listing.html')
-
+    listings_map.save('../Plots/cluster_listing_2.html')
+    """
 
 def plot(data, plot_list, legend_name, colour, fill_opacity=0.2):
     # Create a Map instance
@@ -98,8 +101,17 @@ def plot_listings():
     locs_gdf = geopandas.GeoDataFrame(df, crs=crs, geometry=locs_geometry)
     m = folium.Map(location=[59.91, 10.73], zoom_start=10, tiles='cartodbpositron')
 
-    feature_ea = folium.FeatureGroup(name='Entire home/apt')
-    feature_pr = folium.FeatureGroup(name='Private room')
+
+
+    # Generate dictionary for each category type
+    colours = ['FF5347', '#81D152', '42ADC7', 'FF9D4F', '5B4DB7', "#F5F263"]
+    property_types = df['property_type'].value_counts()[:len(colours)].index.tolist()
+    feature_groups = [folium.FeatureGroup(name=x) for x in property_types]
+
+    # create dictionary with values needed to plot
+    d = {}
+    for x in range(len(property_types)):
+        d[property_types[x]] = (colours[x], feature_groups[x])
 
     for i, v in locs_gdf.iterrows():
         hoover_text = """
@@ -107,28 +119,25 @@ def plot_listings():
         Minimum nights: <b>%s</b><br>
         URL: <b>%s</b><br>
         """ % (v['price'], v['minimum_nights'], v['listing_url'])
+
         popup_text ="Price: %s \nMinimum nights: %s \nURL: %s" % (v['price'], v['minimum_nights'], v['listing_url'])
         popup = folium.Popup(popup_text, parse_html=True)
 
-        if v['room_type'] == 'Entire home/apt':
+        if v['property_type'] in d.keys():
             folium.CircleMarker(location=[v['latitude'], v['longitude']],
-                                radius=5,
+                                radius=2,
                                 tooltip=hoover_text,
                                 popup=popup,
-                                color='#FFBA00',
-                                fill_color='#FFBA00',
-                                fill=True).add_to(feature_ea)
-        elif v['room_type'] == 'Private room':
-            folium.CircleMarker(location=[v['latitude'], v['longitude']],
-                                radius=5,
-                                tooltip=hoover_text,
-                                popup=popup,
-                                color='#087FBF',
-                                fill_color='#087FBF',
-                                fill=True).add_to(feature_pr)
-    feature_ea.add_to(m)
-    feature_pr.add_to(m)
+                                color=d[v['property_type']][0],
+                                fill=True).add_to(d[v['property_type']][1])
+
+    for f in feature_groups:
+        f.add_to(m)
     folium.LayerControl(collapsed=False).add_to(m)
+
+    # Add legend
+    FloatImage(LEGEND_FILE, bottom=0, left=86).add_to(m)
+
     return m
 
 main()
