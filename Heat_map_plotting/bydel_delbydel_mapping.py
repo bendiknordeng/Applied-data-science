@@ -6,8 +6,8 @@ import geopandas
 # This file takes in information about delbydeler and create a large delby polygon
 
 # configurable parameters
-WRITE_GEOJSON = True
-WRITE_EXCEL = True
+WRITE_GEOJSON = False
+WRITE_EXCEL = False
 
 # Read in the the separate data sources to pandas
 df = pd.read_excel(r'../data/heat_map_bydeler_delbydeler_grunnkretser.xlsx', sheet_name='Table 1')
@@ -44,8 +44,9 @@ bydel['Bydel_area'] = bydel['geometry'].to_crs({'init': 'epsg:4326'}).map(lambda
 bydel['Bydel_centroid_longitude'] = bydel['geometry'].to_crs({'init': 'epsg:4326'}).map(lambda p: p.centroid.x)
 bydel['Bydel_centroid_latitude'] = bydel['geometry'].to_crs({'init': 'epsg:4326'}).map(lambda p: p.centroid.y)
 
-
+# Drop duplicates
 bydel.drop_duplicates(inplace=True)
+print(bydel)
 
 # Write to a geojson format
 if WRITE_GEOJSON: bydel.to_file("../data/heat_map_bydel_boundaries.geojson", driver="GeoJSON")

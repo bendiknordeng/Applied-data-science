@@ -1,7 +1,7 @@
 import pandas as pd
 
 def load_data():
-    df = pd.read_csv('data/listings_detailed.csv') # retrieve raw data
+    df = pd.read_csv('../data/listings_detailed.csv') # retrieve raw data
 
     # Drop unnecessary columns
     redundant_cols = ['id', 'name', 'description', 'listing_url', 'scrape_id', 
